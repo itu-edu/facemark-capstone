@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+<style>
+body, html {
+  height: 100%;
+  margin: 0;
+  background-image: url(https://i.pinimg.com/originals/7c/d5/3d/7cd53d36d121d839da9600ca055b01db.gif);
+  height: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.bg_blue{
+padding:10px;
+border-radius:10px;
+box-shadow:3px 3px 3px grey;
+background:dodgerblue;
+color:#fff;
+}
+.custom-block{
+padding:15px;
+border:1px solid dodgerblue;
+}
+.block-area{
+margin-top:30px
+}
+.form-area{
+border:1px solid dodgerblue;
+padding:15px;
+}
+.head-title{
+padding:5px;
+background:dodgerblue;
+color:#fff;
+margin-bottom:10px;
+}
+
+.control-label{
+    color:white;
+}
+
+.btn{
+display:inline-block;
+padding:0.50em 1.2em;
+border:0.1em solid #FFFFFF;
+margin:0 0.50em 0.3em 0;
+border-radius:0.12em;
+box-sizing: border-box;
+text-decoration:none;
+font-family:'Roboto',sans-serif;
+font-weight:300;
+color:black;
+text-align:center;
+transition: all 0.2s;
+}
+
+.btn:hover{
+color:#000000;
+background-color:#FFFFFF;
+}
+
+.divSubmit, .divPassword{
+       color:black;
+       margin-top:10px;
+}
+
+.copyright{
+    color:white;
+    position:absolute;bottom:0;right:0;
+    opacity:0.3;
+}
+</style>
+
+<body>
+<div class="container">
+    <div class="row block-area">
+        <div class="col-lg-3">
+        </div>
+         <div class="form-area">
+             <form action="/postsignIn/" method="post">{% csrf_token %}
+                      <div class="head-title"><h3 class="text-center" style="color:#fff">Login User</h3></div>
+                <div class="form-group">
+                         <label class="control-label">Username : </label>
+                        <input type="text" id="username" name="username" class="form-control">
+                </div>
+                 <div class="form-group divPassword">
+                    <label class="control-label">Password : </label>
+                    <input type="password" id="password" name="password" class="form-control">
+                </div>
+                 <div class="form-group divSubmit">
+                         <input type="submit" value="Submit" class="btn btn-block btn-success">
+                     <input type="button" value="Register" class="btn btn-block btn-success">
+                </div>
+             </form>
+        </div>
+                <p class=" copyright">Image credits: &copy;pinimg.com</p>
+    </div>
+</div>
+</body>
+</html>

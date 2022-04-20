@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+<link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+<link href="{% static "css/custom.css" %}" rel="stylesheet">
+<link
+    href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800'
+    rel='stylesheet' type='text/css'>
+<script src="{% static "js/custom.js" %}"></script>
+<head>
+    <style>
+        .intro {
+            background-color: rgba(3, 65, 109, 255);
+        }
+
+        #video {
+            border: 1px solid black;
+            box-shadow: 2px 2px 3px black;
+            width: 320px;
+            height: 240px;
+        }
+
+        #photo {
+            border: 1px solid black;
+            box-shadow: 2px 2px 3px black;
+            width: 320px;
+            height: 240px;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .camera {
+            width: 340px;
+            display: inline-block;
+        }
+
+        .output {
+            width: 340px;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        #startbutton {
+            display: block;
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
+            bottom: 32px;
+            background-color: rgba(0, 150, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0px 0px 1px 2px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+            font-family: "Lucida Grande", "Arial", sans-serif;
+            color: rgba(255, 255, 255, 1.0);
+        }
+
+        .contentarea {
+            font-size: 16px;
+            font-family: "Lucida Grande", "Arial", sans-serif;
+            width: 760px;
+        }
+
+        .align {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .box {
+            border: 15px solid rgba(3, 65, 109, 255);
+            padding: 50px;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .crop img {
+            width: 500px;
+            height: 100%;
+        }
+
+    </style>
+</head>
+
+<body>
+    <nav id="siteNav" class="navbar navbar-default navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">
+                    <span class="glyphicon glyphicon-eye-open"></span>
+                    Facemark
+                </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="{%url 'home' %}">back</a>
+                    </li>
+                    <li class="active">
+                        <a href="{%url 'camera' %}">Create Datasets</a>
+                    </li>
+                     <li>
+                        <a href="{%url 'embeddings' %}">Train</a>
+                    </li>
+                    <li>
+                        <a href="{%url 'logout' %}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="intro">
+        <div class="container">
+            <h4>Add details and capture images for dataset</h4>
+        </div>
+    </section>
+
+    <div id="student_name_form" class="align">
+        <form id="form" method="post" class="row g-3 needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="col-md-3">
+                <div class="form-outline">
+                    <label for="student_name_val" class="form-label">Enter student name:</label>
+                    <input type="text" name="student_name_val" id="student_name_val" class="form-control input"
+                        required>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-outline">
+                    <label for="student_id_val" class="form-label">Enter student ID:</label>
+                    <input type="text" name="student_id_val" id="student_id_val" class="form-control input" required>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-outline">
+                    <label for="user_type" class="form-label">Select User Type:</label>
+                    <select type="text" name="user_type" id="user_type" class="form-control input" required>
+                        <option value="Student">Student</option>
+                        <option value="Teacher">Teacher</option>
+                        <strong>
+                            <input type="hidden" id="url" name="url">
+                        </strong>
+                </div>
+            </div>
+            <div>
+                <div>
+                    <br>
+                    <input type="submit" value="Save" id="student_name" name="student_name" onclick="hideForm()"
+                        class="btn btn-outline-success submitButton">
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="container pt-5 box">
+        <div class="camera">
+            <video id="video">Video stream not available.</video>
+            <button id="startbutton" onclick="start()">Start Taking photos</button>
+        </div>
+        <canvas id="canvas">
+        </canvas>
+        <div class="output">
+            <img id="photo" alt="The screen capture will appear in this box.">
+        </div>
+        <div id="capturing_div">
+            <p id="count_images"></p>
+        </div>
+        <div class="crop">
+            <p>"Start Taking" photos will take 5 images at a time, 3 seconds apart.<br> To help ensure accuracy we recommend 10 images per person.<br>For optimal face training use below ideal face poses.</p>
+            <img src="../images/ideal_poses.jpg">
+        </div>
+    </div>
+</body>
+
+<script>
+    let inputName = document.getElementById("student_name_val");
+    let inputId = document.getElementById("student_id_val");
+    let button = document.getElementById("student_name");
+    let myVar
+    let count = 0;
+    button.disabled = true;
+    inputName.addEventListener("change", stateHandle);
+    function stateHandle() {
+        if (inputName.value === "" && inputId.value === "") {
+            button.disabled = true;
+        } else {
+            button.disabled = false;
+        }
+    }
+    function start() {
+        myVar = setInterval(takepicture, 2000);
+    }
+    window.onload = function viewAdjust() {
+        hideForm();
+    }
+    function hideForm() {
+        var student = JSON.parse("{{student_name|escapejs}}")
+        var divForm = document.getElementById("student_name_form")
+        var divName = document.getElementById("capturing_div")
+        if (student != null) {
+            divName.style.display = ''
+            divForm.style.display = 'none'
+        }
+        else {
+            divName.style.display = 'none'
+            divForm.style.display = ''
+        }
+    }
+
+    var width = 320; // We will scale the photo width to this
+    var height = 0; // This will be computed based on the input stream
+    var streaming = false;
+    var video = null;
+    var canvas = null;
+    var photo = null;
+    var startbutton = null;
+    var stopbutton = null;
+
+    function showViewLiveResultButton() {
+        if (window.self !== window.top) {
+            // Ensure that if our document is in a frame, we get the user
+            // to first open it in its own tab or window. Otherwise, it
+            // won't be able to request permission for camera access.
+            document.querySelector(".contentarea").remove();
+            const button = document.createElement("button");
+            button.textContent = "View live result of the example code above";
+            document.body.append(button);
+            button.addEventListener('click', () => window.open(location.href));
+            return true;
+        }
+        return false;
+    }
+
+    function startup() {
+        if (showViewLiveResultButton()) {
+            return;
+        }
+        video = document.getElementById('video');
+        canvas = document.getElementById('canvas');
+        photo = document.getElementById('photo');
+        startbutton = document.getElementById('startbutton');
+        stopbutton = document.getElementById('stopbutton');
+        navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+        })
+            .then(function (stream) {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function (err) {
+                console.log("An error occurred: " + err);
+            });
+
+        video.addEventListener('canplay', function (ev) {
+            if (!streaming) {
+                height = video.videoHeight / (video.videoWidth / width);
+               if (isNaN(height)) {
+                    height = width / (4 / 3);
+                }
+                video.setAttribute('width', width);
+                video.setAttribute('height', height);
+                canvas.setAttribute('width', width);
+                canvas.setAttribute('height', height);
+                streaming = true;
+            }
+        }, false);
+        clearphoto();
+    }
+
+    function clearphoto() {
+        var context = canvas.getContext('2d');
+        context.fillStyle = "#AAA";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        var data = canvas.toDataURL('image/png');
+        photo.setAttribute('src', data);
+    }
+
+    function takepicture() {
+        document.getElementById("count_images").innerHTML = "Images captured: " + parseInt(count + 1);
+        count++
+        if (parseInt(count%5) == 0) {
+            clearInterval(myVar)
+        }
+        const url = document.getElementById("url")
+        var context = canvas.getContext('2d');
+        if (width && height) {
+            canvas.width = width;
+            canvas.height = height;
+            context.drawImage(video, 0, 0, width, height);
+            var data = canvas.toDataURL('image/png');
+            photo.setAttribute('src', data);
+            var img = data.split(',')[1];
+            fetch("https://api.imgur.com/3/image/", {
+                method: "post",
+                headers: {
+                    Authorization: "Client-ID 9f8406f9760f498"
+                },
+                body: img
+            }).then(data => data.json()).then(data => {
+                img.src = data.data.link
+                url.value += url.value + "," + data.data.link
+            })
+        } else {
+            clearphoto();
+        }
+    }
+    window.addEventListener('load', startup, false);
+
+</script>
+
+</html>
